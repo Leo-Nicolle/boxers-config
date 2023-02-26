@@ -1,19 +1,17 @@
 <template>
   <Group :position="position">
     <Arm
-      :arm-length="armLength"
-      :front-arm-length="frontArmLength"
       :position="{ x: 0, y: 0, z: -shoulderWidth / 2 }"
-      :angle="elbowAngle"
+      v-bind="arm"
+      :angle="+elbowAngle"
       :t="tLeft"
     />
 
     <Arm
-      :arm-length="armLength"
-      :front-arm-length="frontArmLength"
       :position="{ x: 0, y: 0, z: shoulderWidth / 2 }"
+      v-bind="arm"
       :t="tRight"
-      :angle="-elbowAngle"
+      :angle="(+elbowAngle) * -1"
     />
 
     <Box
@@ -42,8 +40,6 @@ import Arm from "./Arm.vue";
 import { Group, Box,Cylinder, LambertMaterial, Sphere } from "troisjs";
 import { PlayerProps } from "./types";
 
-const armLength = ref(10);
-const frontArmLength = ref(12);
 const props = defineProps<PlayerProps>();
 </script>
 

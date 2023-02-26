@@ -6,8 +6,11 @@
       :depth="armLength"
       :position="{ x: 0, y: 0, z: armLength / 2 }"
     >
-      <LambertMaterial :color="'red'" />
+      <LambertMaterial :color="'green'" />
     </Box>
+    <Sphere :radius="jointW">
+        <LambertMaterial :color="'green'" />
+      </Sphere>
     <Group
       :position="{ x: 0, y: 0, z: armLength }"
       :rotation="frontArmRotation"
@@ -20,7 +23,7 @@
       >
         <LambertMaterial :color="'green'" />
       </Box>
-      <Sphere>
+      <Sphere :radius="jointW">
         <LambertMaterial :color="'green'" />
       </Sphere>
       <Sphere :position="{ x: 0, y: 0, z: -frontArmLength }">
@@ -41,8 +44,8 @@ const props = defineProps<ArmProps>();
 const minFrontArmAngle = 1.9 * Math.PI;
 const maxFrontArmAngle = Math.PI;
 
+const jointW = ref(0.5);
 const minArmAngle = Math.PI / 16;
-const maxArmAngle = Math.PI / 2;
 
 const armPosition = computed(() => ({
   x: props.position.x,
@@ -59,7 +62,7 @@ const frontArmRotation = computed(() => ({
 
 const armRotation = computed(() => ({
   x: Math.PI / 2 + props.angle,
-  y: interp(minArmAngle, maxArmAngle, linearInOut(props.t)),
+  y: interp(minArmAngle, props.maxRotation, linearInOut(props.t)),
   z: 0,
 }));
 

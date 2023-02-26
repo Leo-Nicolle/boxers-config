@@ -16,7 +16,9 @@ export interface ArmProps {
   armLength: number;
   position: Point3;
   t: number;
+  maxRotation: number;
 }
+export type ArmState =Omit<ArmProps, "position" | "t" | "angle">;
 
 export interface PlayerProps {
   tLeft: number;
@@ -25,8 +27,9 @@ export interface PlayerProps {
   shoulderWidth: number;
   elbowAngle: number;
   neckLength: number;
+  arm: ArmState;
 }
-
+export type PlayerState = Omit<PlayerProps, "tLeft" | "tRight" | "position">;
 export interface Animation {
   playing: boolean;
   offset: number;
@@ -40,7 +43,5 @@ export interface UIProps {
 export interface State {
   loops: Record<string, Animation>;
   animation: Animation;
-  player: PlayerProps;
-  arm: Arm;
-  playing: boolean;
+  player: PlayerState;
 }

@@ -22,9 +22,7 @@
         <PointLight :position="{ y: 50, z: 50 }" cast-shadow />
         <Player
           :position="{ x: -12, y: 20, z: 0 }"
-          :shoulder-width="state.player.shoulderWidth"
-          :elbow-angle="state.player.elbowAngle"
-          :neck-length="state.player.neckLength"
+          v-bind="state.player"
           :t-left="state.loops.left1.t"
           :t-right="state.loops.right1.t"
         ></Player>
@@ -38,9 +36,7 @@
         >
           <Player
             :position="{ x: -12, y: 20, z: 0 }"
-            :shoulder-width="state.player.shoulderWidth"
-            :elbow-angle="state.player.elbowAngle"
-            :neck-length="state.player.neckLength"
+            v-bind="state.player"
             :t-left="state.loops.left2.t"
             :t-right="state.loops.right2.t"
           ></Player>
@@ -56,9 +52,7 @@
       </Scene>
     </Renderer>
     <UI v-model="state" />
-    <p class="debug">
-      {{ state.loops.left1.offset }} {{ state.loops.left1.t }}
-    </p>
+    <p class="debug">{{}}</p>
   </div>
 </template>
 
@@ -80,22 +74,28 @@ import {
   RendererPublicInterface,
   Scene,
 } from "troisjs";
-import { ArmProps, PlayerProps, State, UIProps } from "./types";
+import {
+  ArmProps,
+  ArmState,
+  PlayerProps,
+  PlayerState,
+  State,
+  UIProps,
+} from "./types";
 
-const arm: Omit<ArmProps, "position" | "t"> = {
-  angle: Math.PI / 4,
-  frontArmLength: 12,
-  armLength: 10,
-};
-const player: Omit<PlayerProps, "tLeft" | "tRight" | "position"> = {
+const player: PlayerState = {
   shoulderWidth: 5,
   elbowAngle: Math.PI / 4,
   neckLength: 2.5,
+  arm: {
+    frontArmLength: 12,
+    armLength: 10,
+    maxRotation: Math.PI / 2,
+  },
 };
 const speed = 0.01;
 const state = ref<State>({
   player,
-  arm,
   animation: {
     offset: 0,
     t: 0,
@@ -105,7 +105,7 @@ const state = ref<State>({
     left1: {
       offset: 0,
       t: 0,
-      playing: false,
+      playing: true,
     },
     right1: {
       offset: 0,
@@ -123,7 +123,7 @@ const state = ref<State>({
       playing: false,
     },
   },
-} as unknown as State);
+});
 
 const rendererC = ref();
 
@@ -144,7 +144,7 @@ onMounted(() => {
 
     Object.entries(value.loops).forEach(([name, anim]) => {
       if (value.animation.playing && anim.playing) {
-        anim.t = (value.animation.t + +anim.offset)%1;
+        anim.t = (value.animation.t + +anim.offset) % 1;
       } else {
         anim.t = anim.offset;
       }
