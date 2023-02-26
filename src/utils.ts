@@ -1,5 +1,4 @@
 import { computed } from 'vue';
-import {merge} from 'lodash';
 
 export function interp(a: number, b: number, t: number) {
   return a + (b - a) * t;

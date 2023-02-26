@@ -1,7 +1,6 @@
 import {
   Vector3
 } from "three";
-import { Ref } from "vue";
 
 
 export type Point3= {x: number, y: number, z: number};
