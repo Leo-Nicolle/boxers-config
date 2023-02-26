@@ -1,18 +1,31 @@
 <template>
-  <Group :position="props.position" :rotation="{ x: armAngle, y: 0, z: 0 }">
-    <Box :width="1" :height="0.25" :depth="armLength"
-     :position="{x: 0, y: 0, z: armLength/2}">
+  <Group :position="armPosition" :rotation="armRotation">
+    <Box
+      :width="1"
+      :height="0.25"
+      :depth="armLength"
+      :position="{ x: 0, y: 0, z: armLength / 2 }"
+    >
       <LambertMaterial :color="'red'" />
     </Box>
     <Group
       :position="{ x: 0, y: 0, z: armLength }"
       :rotation="frontArmRotation"
     >
-      <Box :width="1" :height="0.25" :depth="frontArmLength"
-        :position="{x: 0, y: 0, z: -frontArmLength/2}"
+      <Box
+        :width="1"
+        :height="0.25"
+        :depth="frontArmLength"
+        :position="{ x: 0, y: 0, z: -frontArmLength / 2 }"
       >
         <LambertMaterial :color="'green'" />
       </Box>
+      <Sphere>
+        <LambertMaterial :color="'green'" />
+      </Sphere>
+      <Sphere :position="{ x: 0, y: 0, z: -frontArmLength }">
+        <LambertMaterial :color="'green'" />
+      </Sphere>
     </Group>
   </Group>
 </template>
@@ -20,16 +33,37 @@
 <script setup lang="ts">
 import { ref, defineProps, computed } from "vue";
 import * as THREE from "three";
-import { Group, Box, LambertMaterial } from "troisjs";
+import { Sphere, Group, Box, LambertMaterial } from "troisjs";
 import { ArmProps } from "./types";
+import { interp, linearInOut } from "./utils";
 
 const props = defineProps<ArmProps>();
-const frontArmRotation = computed(() => ({
-  x: 0, y: props.t, z: 0
+const minFrontArmAngle = 1.9 * Math.PI;
+const maxFrontArmAngle = Math.PI;
+
+const minArmAngle = Math.PI / 16;
+const maxArmAngle = Math.PI / 2;
+
+const armPosition = computed(() => ({
+  x: props.position.x,
+  y: props.position.y,
+  z: props.position.z,
 }));
-const armAngle = ref(Math.PI/2);
 
+const frontArmRotation = computed(() => ({
+  x: 0,
+  y: interp(minFrontArmAngle, maxFrontArmAngle, linearInOut(props.t)),
+  z: 0,
+  // x: 0, y: 0, z: 0
+}));
 
+const armRotation = computed(() => ({
+  x: Math.PI / 2 + props.angle,
+  y: interp(minArmAngle, maxArmAngle, linearInOut(props.t)),
+  z: 0,
+}));
+
+const armAngle = ref(Math.PI / 2);
 </script>
 
 <style>

@@ -1,46 +1,72 @@
 <template>
   <div>
-  <Renderer
-    ref="rendererC"
-    antialias
-    :orbit-ctrl="{ enableDamping: true }"
-    resize="window"
-  >
-    <Camera
-      :position="{
-        x: -42.17209943682757,
-        y: 28.94714654626982,
-        z: 18.342062492549577,
-      }"
-      :look-at="{
-        x: 0.7760758985407427,
-        y: -0.5327024991899921,
-        z: -0.33754147457892586,
-      }"
-    />
-    <Scene>
-      <PointLight :position="{ y: 50, z: 50 }" cast-shadow />
-      <Arm :arm-length="10" :front-arm-length="10" :position ="{x: 0, y: 20, z: 0}"
-      :t="tArm"/>
-      <Plane
-        :width="100"
-        :height="100"
-        :rotation="{ x: -Math.PI / 2 }"
-        receive-shadow
-      >
-        <BasicMaterial :color="'#004488'" :wireframe="true" />
-      </Plane>
-    </Scene>
-  </Renderer>
-  <input type="range" />
-</div>
+    <Renderer
+      ref="rendererC"
+      antialias
+      :orbit-ctrl="{ enableDamping: true }"
+      resize="window"
+    >
+      <Camera
+        :position="{
+          x: -42.17209943682757,
+          y: 28.94714654626982,
+          z: 18.342062492549577,
+        }"
+        :look-at="{
+          x: 0.7760758985407427,
+          y: -0.5327024991899921,
+          z: -0.33754147457892586,
+        }"
+      />
+      <Scene>
+        <PointLight :position="{ y: 50, z: 50 }" cast-shadow />
+        <Player
+          :position="{ x: -12, y: 20, z: 0 }"
+          :shoulder-width="state.player.shoulderWidth"
+          :elbow-angle="state.player.elbowAngle"
+          :neck-length="state.player.neckLength"
+          :t-left="state.loops.left1.t"
+          :t-right="state.loops.right1.t"
+        ></Player>
+
+        <Group
+          :rotation="{
+            x: 0,
+            y: Math.PI,
+            z: 0,
+          }"
+        >
+          <Player
+            :position="{ x: -12, y: 20, z: 0 }"
+            :shoulder-width="state.player.shoulderWidth"
+            :elbow-angle="state.player.elbowAngle"
+            :neck-length="state.player.neckLength"
+            :t-left="state.loops.left2.t"
+            :t-right="state.loops.right2.t"
+          ></Player>
+        </Group>
+        <Plane
+          :width="100"
+          :height="100"
+          :rotation="{ x: -Math.PI / 2 }"
+          receive-shadow
+        >
+          <BasicMaterial :color="'#004488'" :wireframe="true" />
+        </Plane>
+      </Scene>
+    </Renderer>
+    <UI v-model="state" />
+    <p class="debug">
+      {{ state.loops.left1.offset }} {{ state.loops.left1.t }}
+    </p>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import * as THREE from "three";
-import Arm from './Arm.vue';
-
+import Player from "./Player.vue";
+import UI from "./UI.vue";
 import {
   Group,
   Box,
@@ -54,20 +80,76 @@ import {
   RendererPublicInterface,
   Scene,
 } from "troisjs";
+import { ArmProps, PlayerProps, State, UIProps } from "./types";
+
+const arm: Omit<ArmProps, "position" | "t"> = {
+  angle: Math.PI / 4,
+  frontArmLength: 12,
+  armLength: 10,
+};
+const player: Omit<PlayerProps, "tLeft" | "tRight" | "position"> = {
+  shoulderWidth: 5,
+  elbowAngle: Math.PI / 4,
+  neckLength: 2.5,
+};
+const speed = 0.01;
+const state = ref<State>({
+  player,
+  arm,
+  animation: {
+    offset: 0,
+    t: 0,
+    playing: true,
+  },
+  loops: {
+    left1: {
+      offset: 0,
+      t: 0,
+      playing: false,
+    },
+    right1: {
+      offset: 0,
+      t: 0,
+      playing: false,
+    },
+    left2: {
+      offset: 0,
+      t: 0,
+      playing: false,
+    },
+    right2: {
+      offset: 0,
+      t: 0,
+      playing: false,
+    },
+  },
+} as unknown as State);
 
 const rendererC = ref();
-const meshC = ref();
-const tArm = ref(0);
-
 
 window.renderer = rendererC;
 window.THREE = THREE;
 onMounted(() => {
   const renderer = rendererC.value as RendererPublicInterface;
-  // const mesh = (meshC.value as MeshPublicInterface).mesh
   renderer.onBeforeRender(() => {
-    tArm.value=(tArm.value + 0.1) % (2 * Math.PI);
-    console.log(tArm.value);
+    const value = { ...state.value };
+    if (value.animation.playing) {
+      value.animation.t = value.animation.t + speed;
+      if (value.animation.t > 1) {
+        value.animation.t = 0;
+      }
+    } else {
+      value.animation.t = value.animation.offset;
+    }
+
+    Object.entries(value.loops).forEach(([name, anim]) => {
+      if (value.animation.playing && anim.playing) {
+        anim.t = (value.animation.t + +anim.offset)%1;
+      } else {
+        anim.t = anim.offset;
+      }
+    });
+    state.value = value;
   });
 });
 
@@ -86,5 +168,12 @@ html {
 }
 canvas {
   display: block;
+}
+.debug {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  color: white;
 }
 </style>
