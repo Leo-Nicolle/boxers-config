@@ -14,15 +14,18 @@
         }"
         :look-at="{
           x: 0.7760758985407427,
-          y: -0.5327024991899921,
+          y: -12,
           z: -0.33754147457892586,
         }"
       />
       <Scene>
         <PointLight :position="{ y: 50, z: 50 }" cast-shadow />
+        <PointLight :position="{ y: 50, z: -50 }" cast-shadow />
+
         <Player
           :position="{ x: -12, y: 20, z: 0 }"
           v-bind="state.player"
+          @mounted="(v) => onPlayerMounted(v, 'player1')"
           :t-left="state.loops.left1.t"
           :t-right="state.loops.right1.t"
         ></Player>
@@ -33,10 +36,16 @@
             y: Math.PI,
             z: 0,
           }"
+          :scale="{
+            x: 1,
+            y: 1,
+            z: -1,
+          }"
         >
           <Player
             :position="{ x: -12, y: 20, z: 0 }"
             v-bind="state.player"
+            @mounted="(v) => onPlayerMounted(v, 'player2')"
             :t-left="state.loops.left2.t"
             :t-right="state.loops.right2.t"
           ></Player>
@@ -61,6 +70,7 @@ import { ref, onMounted, computed } from "vue";
 import * as THREE from "three";
 import Player from "./Player.vue";
 import UI from "./UI.vue";
+import {registerCollisions, checkCollisions} from './collisions'
 import {
   Group,
   Box,
@@ -126,12 +136,13 @@ const state = ref<State>({
 });
 
 const rendererC = ref();
-
 window.renderer = rendererC;
 window.THREE = THREE;
 onMounted(() => {
   const renderer = rendererC.value as RendererPublicInterface;
   renderer.onBeforeRender(() => {
+    // detect collisions
+    checkCollisions();
     const value = { ...state.value };
     if (value.animation.playing) {
       value.animation.t = value.animation.t + speed;
@@ -152,6 +163,10 @@ onMounted(() => {
     state.value = value;
   });
 });
+
+function onPlayerMounted(player: THREE.Mesh, name: string) {
+  registerCollisions(rendererC.value, player, name);
+}
 
 function getLookAt() {
   const vector = new THREE.Vector3(0, 0, -1);

@@ -44,3 +44,9 @@ export interface State {
   animation: Animation;
   player: PlayerState;
 }
+
+export type armNames = "left1" | "right1" | "left2" | "right2";
+export type Arms = Record<
+  armNames,
+  { group: THREE.Group; bbs: THREE.Box3[]; meshes: THREE.Mesh[] }
+>;

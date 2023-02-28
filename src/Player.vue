@@ -1,5 +1,7 @@
 <template>
-  <Group :position="position">
+  <Group ref="player" :position="position"
+    @created="onCreated"
+  >
     <Arm
       :position="{ x: 0, y: 0, z: -shoulderWidth / 2 }"
       v-bind="arm"
@@ -35,12 +37,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import Arm from "./Arm.vue";
+import { Mesh } from "three";
 import { Group, Box,Cylinder, LambertMaterial, Sphere } from "troisjs";
 import { PlayerProps } from "./types";
 
 const props = defineProps<PlayerProps>();
+const player = ref();
+const emit = defineEmits<{
+  (event: "mounted", value: Mesh): void;
+}>();
+
+onMounted(() => {
+
+});
+function onCreated(o: Mesh){
+  const names = ['left', 'right', 'shoulders', 'head', 'body']
+  setTimeout(() => {
+    o.children.forEach((c, i) => {
+      c.name = names[i];
+    })
+    emit('mounted', o);
+  }, 100)
+}
+
 </script>
 
 <style>

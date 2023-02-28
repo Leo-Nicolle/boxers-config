@@ -1,5 +1,5 @@
 <template>
-  <Group :position="armPosition" :rotation="armRotation">
+  <Group :position="armPosition" :rotation="armRotation" @created="onCreated">
     <Box
       :width="1"
       :height="0.25"
@@ -9,8 +9,8 @@
       <LambertMaterial :color="'green'" />
     </Box>
     <Sphere :radius="jointW">
-        <LambertMaterial :color="'green'" />
-      </Sphere>
+      <LambertMaterial :color="'green'" />
+    </Sphere>
     <Group
       :position="{ x: 0, y: 0, z: armLength }"
       :rotation="frontArmRotation"
@@ -67,6 +67,19 @@ const armRotation = computed(() => ({
 }));
 
 const armAngle = ref(Math.PI / 2);
+
+function onCreated(group: THREE.Group) {
+  const names = ["frontarm", "elbowjoint", "hand", "arm","shoulderjoint"];
+  setTimeout(() => {
+    let i = 0;
+    group.traverse((c) => {
+      if(c.type === 'Group')return;
+      c.matrixAutoUpdate = true;
+      c.name = names[i];
+      i++;
+    });
+  }, 60);
+}
 </script>
 
 <style>
