@@ -28,6 +28,7 @@
           @mounted="(v) => onPlayerMounted(v, 'player1')"
           :t-left="state.loops.left1.t"
           :t-right="state.loops.right1.t"
+          :namesInverted="false"
         ></Player>
 
         <Group
@@ -48,6 +49,7 @@
             @mounted="(v) => onPlayerMounted(v, 'player2')"
             :t-left="state.loops.left2.t"
             :t-right="state.loops.right2.t"
+            :names-inverted="true"
           ></Player>
         </Group>
         <Plane
@@ -56,7 +58,7 @@
           :rotation="{ x: -Math.PI / 2 }"
           receive-shadow
         >
-          <BasicMaterial :color="'#004488'" :wireframe="true" />
+          <BasicMaterial :color="'#004488'" />
         </Plane>
       </Scene>
     </Renderer>
@@ -70,7 +72,7 @@ import { ref, onMounted, computed } from "vue";
 import * as THREE from "three";
 import Player from "./Player.vue";
 import UI from "./UI.vue";
-import {registerCollisions, checkCollisions} from './collisions'
+import { registerCollisions, checkCollisions } from "./collisions";
 import {
   Group,
   Box,
@@ -166,6 +168,7 @@ onMounted(() => {
 
 function onPlayerMounted(player: THREE.Mesh, name: string) {
   registerCollisions(rendererC.value, player, name);
+  console.log(player);
 }
 
 function getLookAt() {

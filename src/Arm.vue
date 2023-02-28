@@ -34,13 +34,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, computed } from "vue";
+import { ref, defineProps, computed, nextTick } from "vue";
 import * as THREE from "three";
 import { Sphere, Group, Box, LambertMaterial } from "troisjs";
 import { ArmProps } from "./types";
 import { interp, linearInOut } from "./utils";
 
 const props = defineProps<ArmProps>();
+const emit = defineEmits(["mounted"]);
 const minFrontArmAngle = 1.9 * Math.PI;
 const maxFrontArmAngle = Math.PI;
 
@@ -69,15 +70,17 @@ const armRotation = computed(() => ({
 const armAngle = ref(Math.PI / 2);
 
 function onCreated(group: THREE.Group) {
-  const names = ["frontarm", "elbowjoint", "hand", "arm","shoulderjoint"];
+  const names = ["frontarm", "elbowjoint", "hand", "arm", "shoulderjoint"];
+  let i = 0;
   setTimeout(() => {
-    let i = 0;
     group.traverse((c) => {
-      if(c.type === 'Group')return;
+      if (c.type === "Group") return;
       c.matrixAutoUpdate = true;
-      c.name = names[i];
+      c.name = `${names[i]}${props.name}`;
+      console.log(c.name);
       i++;
     });
+    emit("mounted", group);
   }, 60);
 }
 </script>

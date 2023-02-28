@@ -1,19 +1,21 @@
 <template>
-  <Group ref="player" :position="position"
-    @created="onCreated"
-  >
+  <Group ref="player" @created="onCreated" :position="position">
     <Arm
       :position="{ x: 0, y: 0, z: -shoulderWidth / 2 }"
       v-bind="arm"
       :angle="+elbowAngle"
       :t="tLeft"
+      :name="namesInverted ? `right` : `left`"
+      @mounted="(v) => onArmMounted(v, 'left')"
     />
 
     <Arm
       :position="{ x: 0, y: 0, z: shoulderWidth / 2 }"
       v-bind="arm"
       :t="tRight"
-      :angle="(+elbowAngle) * -1"
+      :angle="+elbowAngle * -1"
+      :name="namesInverted ? `left` : `right`"
+      @mounted="(v) => onArmMounted(v, 'right')"
     />
 
     <Box
@@ -28,7 +30,7 @@
       <LambertMaterial :color="'green'" />
     </Sphere>
     <Cylinder
-      :height="position.y/2"
+      :height="position.y / 2"
       :position="{ x: 0, y: -position.y / 4, z: 0 }"
     >
       <LambertMaterial :color="'green'" />
@@ -37,31 +39,34 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 import Arm from "./Arm.vue";
 import { Mesh } from "three";
-import { Group, Box,Cylinder, LambertMaterial, Sphere } from "troisjs";
+import { Group, Box, Cylinder, LambertMaterial, Sphere } from "troisjs";
 import { PlayerProps } from "./types";
 
 const props = defineProps<PlayerProps>();
 const player = ref();
+let group: Mesh;
+let mountedCount = 0;
 const emit = defineEmits<{
   (event: "mounted", value: Mesh): void;
 }>();
 
-onMounted(() => {
-
-});
-function onCreated(o: Mesh){
-  const names = ['left', 'right', 'shoulders', 'head', 'body']
+function onArmMounted(o: Mesh, side: "left" | "right") {
+  mountedCount++;
+  if (mountedCount < 2) return;
   setTimeout(() => {
-    o.children.forEach((c, i) => {
-      c.name = names[i];
-    })
-    emit('mounted', o);
-  }, 100)
+      const names = ["left", "right", "shoulders", "head", "body"];
+      group.children.forEach((c, i) => {
+        c.name = names[i];
+      });
+      emit("mounted", group);
+  }, 200);
 }
-
+function onCreated(o: Mesh) {
+ group = o
+}
 </script>
 
 <style>
